@@ -17,9 +17,14 @@ namespace CoinmarketCap.Net.Interfaces
         private readonly string _version;
 
         private readonly HttpClient _httClient;
-        public BaseRestClient(string key, string baseUrl=null, string version="v1")
+        public BaseRestClient(string apiKey, string baseUrl=null, string version="v1")
         {
-            _key = key;
+            if (String.IsNullOrEmpty(apiKey))
+            {
+                throw new ArgumentNullException("apiKey");
+            }
+            _version = version;
+            _key = apiKey;
             _baseUrl = baseUrl ?? "https://sandbox.coinmarketcap.com";
             _httClient = new HttpClient() { BaseAddress = new Uri(_baseUrl)};
             _httClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -28,7 +33,8 @@ namespace CoinmarketCap.Net.Interfaces
 
         public async Task<CmcResponse<T>> ExecuteRequest<T>(string endpoint,Dictionary<string,object> parameters) where T:class
         {
-            var request = await _httClient.GetAsync($"/{_version}/{endpoint}{CreateParamString(parameters,false)}");
+            var url = $"{_baseUrl}/{_version}/{endpoint}?{CreateParamString(parameters, false)}";
+            var request = await _httClient.GetAsync(url);
             var response =await request.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<CmcResponse<T>>(response);
         }

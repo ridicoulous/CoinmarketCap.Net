@@ -31,9 +31,9 @@ namespace CoinmarketCap.Net.Interfaces
             _httClient.DefaultRequestHeaders.Add("X-CMC_PRO_API_KEY", _key);
         }
 
-        public async Task<CmcResponse<T>> ExecuteRequest<T>(string endpoint,Dictionary<string,object> parameters) where T:class
+        protected async Task<CmcResponse<T>> ExecuteRequest<T>(string endpoint,Dictionary<string,object> parameters) where T:class
         {
-            var url = $"{_baseUrl}/{_version}/{endpoint}?{CreateParamString(parameters, false)}";
+            var url = $"{_baseUrl}/{_version}/{endpoint}?{CreateParamString(parameters)}";
             var request = await _httClient.GetAsync(url);
             var response =await request.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<CmcResponse<T>>(response);
@@ -53,6 +53,18 @@ namespace CoinmarketCap.Net.Interfaces
                 uriString += $"{string.Join("&", ((object[])(urlEncodeValues ? WebUtility.UrlEncode(arrayEntry.Value.ToString()) : arrayEntry.Value)).Select(v => $"{arrayEntry.Key}[]={v}"))}&";
             }
             uriString += $"{string.Join("&", parameters.Where(p => !p.Value.GetType().IsArray).Select(s => $"{s.Key}={(urlEncodeValues ? WebUtility.UrlEncode(s.Value.ToString()) : s.Value)}"))}";
+            uriString = uriString.TrimEnd('&');
+            return uriString;
+        }
+        private string CreateParamString(Dictionary<string, object> parameters)
+        {
+            var uriString = "";
+            var arraysParameters = parameters.Where(p => p.Value.GetType().IsArray).ToList();
+            foreach (var arrayEntry in arraysParameters)
+            {
+                uriString += $"{arrayEntry.Key}={String.Join(",", (object[])arrayEntry.Value)}"; //$"{string.Join("&",$"{arrayEntry.Key}={String.Join(",",(object[])arrayEntry.Value))}&";
+            }
+            uriString += $"{string.Join("&", parameters.Where(p => !p.Value.GetType().IsArray).Select(s => $"{s.Key}={s.Value}"))}";
             uriString = uriString.TrimEnd('&');
             return uriString;
         }

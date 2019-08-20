@@ -7,6 +7,7 @@ namespace CoinmarketCap.Net.Interfaces
 {
     public interface ICoinmarketCapClient
     {
-        CmcResponse<List<CryptocurrencyMap>> CryptocurrencyMap(string symbols);
+        CmcResponse<List<CryptocurrencyMap>> CryptocurrencyMap(string[] symbols);
+        CmcResponse<Dictionary<string,CryptocurrencyQuotesLatest>> CryptocurrencyQuotesLatest(string[] symbols);
     }
 }

@@ -30,13 +30,17 @@ namespace CoinmarketCap.Net.Interfaces
             _httClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             _httClient.DefaultRequestHeaders.Add("X-CMC_PRO_API_KEY", _key);
         }
-
+        JsonSerializerSettings settings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            MissingMemberHandling = MissingMemberHandling.Ignore
+        };
         protected async Task<CmcResponse<T>> ExecuteRequest<T>(string endpoint,Dictionary<string,object> parameters) where T:class
         {
             var url = $"{_baseUrl}/{_version}/{endpoint}?{CreateParamString(parameters)}";
             var request = await _httClient.GetAsync(url);
             var response =await request.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<CmcResponse<T>>(response);
+            return JsonConvert.DeserializeObject<CmcResponse<T>>(response,settings);
         }
         /// <summary>
         /// Create a query string of the specified parameters
